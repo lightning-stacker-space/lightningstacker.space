@@ -12,7 +12,7 @@ Optional env vars:
   PORT          default: 8282
   MIN_SATS      default: 1
   MAX_SATS      default: 10000000
-  USERS         comma-separated list, default: hal,propinas,tips
+  USERS         required — comma-separated list of allowed usernames
 """
 
 import json
@@ -29,7 +29,7 @@ RUNE        = os.environ["CLNREST_RUNE"]
 PORT        = int(os.environ.get("PORT", 8282))
 MIN_SATS    = int(os.environ.get("MIN_SATS", 1))
 MAX_SATS    = int(os.environ.get("MAX_SATS", 10_000_000))
-USERS       = set(os.environ.get("USERS", "hal,propinas,tips").split(","))
+USERS       = set(os.environ["USERS"].split(","))
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
