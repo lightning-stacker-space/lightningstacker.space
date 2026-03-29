@@ -1,0 +1,14 @@
+[Unit]
+Description=LNURL Lightning Address server for lightningstacker.space
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/lnurl_service.py
+Restart=always
+RestartSec=5
+User=nobody
+Group=nogroup
+EnvironmentFile=/opt/lnurl.env
+
+[Install]
+WantedBy=multi-user.target
