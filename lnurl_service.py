@@ -12,7 +12,8 @@ Optional env vars:
   PORT          default: 8282
   MIN_SATS      default: 1
   MAX_SATS      default: 10000000
-  USERS         required — comma-separated list of allowed usernames
+  USERS         comma-separated list of CLN-backed usernames
+  PROXY_USERS   comma-separated user=address pairs, e.g. sharmaz=user@wallet.com
 """
 
 import json
@@ -29,7 +30,14 @@ RUNE        = os.environ["CLNREST_RUNE"]
 PORT        = int(os.environ.get("PORT", 8282))
 MIN_SATS    = int(os.environ.get("MIN_SATS", 1))
 MAX_SATS    = int(os.environ.get("MAX_SATS", 10_000_000))
-USERS       = set(os.environ["USERS"].split(","))
+USERS       = set(u for u in os.environ.get("USERS", "").split(",") if u)
+
+# PROXY_USERS: { "sharmaz": "swamppawpaw18@phoenixwallet.me", ... }
+PROXY_USERS = {}
+for entry in os.environ.get("PROXY_USERS", "").split(","):
+    if "=" in entry:
+        k, v = entry.split("=", 1)
+        PROXY_USERS[k.strip()] = v.strip()
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
@@ -41,6 +49,14 @@ def clnrest(method, params=None):
     req  = urllib.request.Request(url, data=data,
            headers={"Rune": RUNE, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, context=ctx, timeout=15) as r:
+        return json.loads(r.read())
+
+def resolve_lightning_address(address):
+    """Fetch LNURL metadata from a Lightning Address (user@domain)."""
+    user, domain = address.split("@", 1)
+    url = f"https://{domain}/.well-known/lnurlp/{user}"
+    req = urllib.request.Request(url, headers={"User-Agent": "lnurl-proxy/1.0"})
+    with urllib.request.urlopen(req, timeout=10) as r:
         return json.loads(r.read())
 
 class LNURLHandler(BaseHTTPRequestHandler):
@@ -64,6 +80,22 @@ class LNURLHandler(BaseHTTPRequestHandler):
         # Step 1 — metadata
         if path.startswith("/.well-known/lnurlp/"):
             username = path.split("/")[-1]
+
+            if username in PROXY_USERS:
+                try:
+                    meta = resolve_lightning_address(PROXY_USERS[username])
+                    self.send_json(200, {
+                        "tag":            "payRequest",
+                        "callback":       f"https://{DOMAIN}/lnurlp/callback/{username}",
+                        "minSendable":    meta.get("minSendable", MIN_SATS * 1000),
+                        "maxSendable":    meta.get("maxSendable", MAX_SATS * 1000),
+                        "metadata":       json.dumps([["text/plain", f"{username}@{DOMAIN}"]]),
+                        "commentAllowed": meta.get("commentAllowed", 0),
+                    })
+                except Exception as e:
+                    self.send_json(502, {"status": "ERROR", "reason": f"upstream error: {e}"})
+                return
+
             if username not in USERS:
                 self.send_json(404, {"status": "ERROR", "reason": "user not found"})
                 return
@@ -81,6 +113,24 @@ class LNURLHandler(BaseHTTPRequestHandler):
             username    = path.split("/")[-1]
             amount_msat = int(params.get("amount", [0])[0])
             comment     = params.get("comment", [""])[0][:255]
+
+            if username in PROXY_USERS:
+                try:
+                    meta         = resolve_lightning_address(PROXY_USERS[username])
+                    callback_url = meta["callback"]
+                    qs = urllib.parse.urlencode({"amount": amount_msat}
+                         | ({"comment": comment} if comment else {}))
+                    sep = "&" if "?" in callback_url else "?"
+                    req = urllib.request.Request(
+                        callback_url + sep + qs,
+                        headers={"User-Agent": "lnurl-proxy/1.0"},
+                    )
+                    with urllib.request.urlopen(req, timeout=15) as r:
+                        self.send_json(200, json.loads(r.read()))
+                except Exception as e:
+                    self.send_json(502, {"status": "ERROR", "reason": f"upstream error: {e}"})
+                return
+
             description = f"{username}@{DOMAIN}" + (f": {comment}" if comment else "")
 
             if username not in USERS:
