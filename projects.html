@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proyectos — Lightning Stacker Space</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      color: #f0f0f0;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      padding: clamp(1.5rem, 4vw, 3rem);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1.5rem, 4vw, 2.5rem);
+    }
+
+    /* ── header ── */
+    .page-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .back-link {
+      font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+      color: #555;
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.15s;
+    }
+
+    .back-link:hover { color: #f7931a; }
+
+    .page-title {
+      font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+      font-weight: normal;
+      color: #888;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── grid ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+      gap: clamp(1rem, 3vw, 1.5rem);
+      max-width: 1200px;
+    }
+
+    /* ── card ── */
+    .project-card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-video {
+      aspect-ratio: 16 / 9;
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    .card-video iframe,
+    .card-video video {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .card-body {
+      padding: clamp(0.75rem, 2vw, 1rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+    }
+
+    .card-name {
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      font-weight: normal;
+      color: #f0f0f0;
+    }
+
+    .card-desc {
+      font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+      color: #888;
+      line-height: 1.6;
+    }
+
+    .card-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+
+    .card-link {
+      font-size: 0.7rem;
+      color: #555;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: color 0.15s;
+    }
+
+    .card-link:hover { color: #f0f0f0; }
+
+    .card-link--lightning {
+      color: #f7931a;
+      cursor: default;
+    }
+
+    .card-link--lightning:hover { color: #f7931a; }
+
+    /* ── empty / error ── */
+    .projects-empty {
+      font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+      color: #555;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── footer ── */
+    footer {
+      font-size: clamp(0.6rem, 1.5vw, 0.7rem);
+      color: #333;
+      letter-spacing: 0.08em;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <a href="index.html" class="back-link">← home</a>
+    <h1 class="page-title">// proyectos</h1>
+  </header>
+
+  <main>
+    <div class="projects-grid" id="projects-grid"></div>
+    <noscript>
+      <p class="projects-empty">Activa JavaScript para ver los proyectos.</p>
+    </noscript>
+  </main>
+
+  <footer>lightningstacker.space</footer>
+
+  <script>
+    (function () {
+
+      function videoHTML(url) {
+        if (!url) return '';
+        var yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
+        if (yt) {
+          var src = 'https://www.youtube-nocookie.com/embed/' + yt[1] + '?rel=0&modestbranding=1';
+          return '<div class="card-video"><iframe src="' + src + '" loading="lazy" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>';
+        }
+        var vim = url.match(/vimeo\.com\/(\d+)/);
+        if (vim) {
+          return '<div class="card-video"><iframe src="https://player.vimeo.com/video/' + vim[1] + '?dnt=1" loading="lazy" allowfullscreen></iframe></div>';
+        }
+        return '<div class="card-video"><video src="' + url + '" controls preload="none"></video></div>';
+      }
+
+      function linkHTML(href, label) {
+        if (!href) return '';
+        return '<a href="' + href + '" class="card-link" target="_blank" rel="noopener noreferrer">' + label + '</a>';
+      }
+
+      function cardHTML(p) {
+        return '<article class="project-card" id="' + p.slug + '">'
+          + videoHTML(p.video)
+          + '<div class="card-body">'
+          + '<h2 class="card-name">' + p.name + '</h2>'
+          + '<p class="card-desc">' + p.description + '</p>'
+          + '<div class="card-links">'
+          + linkHTML(p.website, '↗ sitio web')
+          + linkHTML(p.github, '⌥ github')
+          + (p.lightning ? '<span class="card-link card-link--lightning">⚡ ' + p.lightning + '</span>' : '')
+          + '</div>'
+          + '</div>'
+          + '</article>';
+      }
+
+      var grid = document.getElementById('projects-grid');
+
+      fetch('projects.json')
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (projects) {
+          if (!projects.length) {
+            grid.innerHTML = '<p class="projects-empty">Próximamente.</p>';
+            return;
+          }
+          grid.innerHTML = projects.map(cardHTML).join('');
+        })
+        .catch(function () {
+          grid.innerHTML = '<p class="projects-empty">Error cargando proyectos.</p>';
+        });
+
+    }());
+  </script>
+
+</body>
+</html>

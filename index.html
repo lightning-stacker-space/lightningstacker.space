@@ -96,6 +96,19 @@
       color: #333;
       letter-spacing: 0.08em;
     }
+
+    .site-nav { display: flex; justify-content: center; }
+
+    .nav-link {
+      font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+      color: #555;
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.15s;
+    }
+
+    .nav-link:hover { color: #f7931a; }
   </style>
 </head>
 <body>
@@ -192,6 +205,10 @@
     <p class="tips-address">propinas@lightningstacker.space</p>
     <p class="tips-also">también: <span>tips@lightningstacker.space</span> <small>(BIP353)</small></p>
   </div>
+
+    <nav class="site-nav">
+      <a href="projects.html" class="nav-link">proyectos →</a>
+    </nav>
 
     <footer>lightningstacker.space</footer>
 
