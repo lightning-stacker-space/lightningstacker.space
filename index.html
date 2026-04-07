@@ -100,15 +100,21 @@
     .site-nav { display: flex; justify-content: center; }
 
     .nav-link {
-      font-size: clamp(0.65rem, 1.8vw, 0.75rem);
-      color: #555;
+      font-size: clamp(0.8rem, 2.2vw, 0.95rem);
+      color: #f7931a;
       text-decoration: none;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      transition: color 0.15s;
+      border: 1px solid #7a4810;
+      padding: 0.4em 1.2em;
+      border-radius: 4px;
+      transition: color 0.15s, border-color 0.15s;
     }
 
-    .nav-link:hover { color: #f7931a; }
+    .nav-link:hover {
+      color: #fff;
+      border-color: #f7931a;
+    }
   </style>
 </head>
 <body>
@@ -195,6 +201,10 @@
 
   <p class="tagline">Un espacio para desarrollar tecnología de Bitcoin.</p>
 
+  <nav class="site-nav">
+    <a href="projects.html" class="nav-link">proyectos →</a>
+  </nav>
+
   <div class="tips-section">
     <p class="tips-label">Propinas via Lightning</p>
     <div class="qr-wrapper">
@@ -205,10 +215,6 @@
     <p class="tips-address">propinas@lightningstacker.space</p>
     <p class="tips-also">también: <span>tips@lightningstacker.space</span> <small>(BIP353)</small></p>
   </div>
-
-    <nav class="site-nav">
-      <a href="projects.html" class="nav-link">proyectos →</a>
-    </nav>
 
     <footer>lightningstacker.space</footer>
 
