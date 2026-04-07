@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "slug": "sharmaz",
+    "name": "Lightning Wallet Simulator",
+    "description": "Simulador educativo de Lightning Wallet. Sin bitcoin real — experimenta cómo funcionan los canales de pago, invoices y pagos instantáneos.",
+    "video": null,
+    "website": "https://billetera.quest/",
+    "github": "https://github.com/Sharmaz/lightningWalletSimulator",
+    "lightning": "sharmaz@lightningstacker.space"
+  }
+]
